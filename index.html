@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CineCatalog Pro | Gestão de Catálogo</title>
+    <title>CineCatalog Pro | Master Edition</title>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/4221/4221419.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -18,89 +19,127 @@
             --text-main: #14181c; --text-dim: #4a5568;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-body); color: var(--text-main); display: flex; min-height: 100vh; }
+        body { background-color: var(--bg-body); color: var(--text-main); display: flex; min-height: 100vh; overflow-x: hidden; }
 
         /* Sidebar */
-        aside { width: 280px; background: var(--bg-sidebar); padding: 20px; border-right: 1px solid rgba(255,255,255,0.05); position: fixed; height: 100vh; overflow-y: auto; z-index: 100; }
+        aside { width: 300px; background: var(--bg-sidebar); padding: 20px; border-right: 1px solid rgba(255,255,255,0.05); position: fixed; height: 100vh; overflow-y: auto; z-index: 100; scrollbar-width: thin; }
         .logo { font-size: 1.5rem; font-weight: 800; color: var(--accent); margin-bottom: 30px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .menu-section { margin-bottom: 25px; }
+        .menu-section { margin-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px; }
         .menu-title { font-size: 0.7rem; text-transform: uppercase; color: var(--text-dim); letter-spacing: 1.5px; margin-bottom: 12px; font-weight: 700; }
         .menu-item { padding: 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: var(--transition); color: var(--text-dim); font-size: 0.9rem; }
-        .menu-item:hover { background: rgba(0,224,84,0.1); color: var(--accent); }
-        select.filter-select { width: 100%; background: var(--bg-card); color: var(--text-main); border: 1px solid rgba(255,255,255,0.1); padding: 8px; border-radius: 4px; margin-bottom: 10px; outline: none; }
+        .menu-item:hover, .menu-item.active { background: rgba(0,224,84,0.1); color: var(--accent); }
+        
+        select.filter-select { width: 100%; background: var(--bg-card); color: var(--text-main); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 6px; margin-bottom: 10px; outline: none; cursor: pointer; }
 
         /* Main Content */
-        main { flex: 1; margin-left: 280px; padding: 25px; }
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; gap: 20px; }
-        .search-container { flex: 1; position: relative; max-width: 500px; }
-        .search-container input { width: 100%; padding: 12px 45px; border-radius: 8px; border: none; background: var(--bg-card); color: var(--text-main); }
-        .search-container i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-dim); }
+        main { flex: 1; margin-left: 300px; padding: 25px; transition: 0.3s; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; gap: 20px; position: sticky; top: 0; z-index: 50; background: var(--bg-body); padding: 10px 0; }
+        .search-container { flex: 1; position: relative; max-width: 600px; }
+        .search-container input { width: 100%; padding: 12px 45px; border-radius: 30px; border: none; background: var(--bg-card); color: var(--text-main); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .search-container i { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-dim); }
         
-        /* Grid */
-        .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 25px; }
-        .movie-card { background: var(--bg-card); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); transition: var(--transition); position: relative; display: flex; flex-direction: column; }
+        /* Grid & Pagination */
+        .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
+        .movie-card { background: var(--bg-card); border-radius: 10px; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); transition: var(--transition); position: relative; display: flex; flex-direction: column; }
         .movie-card:hover { transform: translateY(-5px); border-color: var(--accent); }
         .poster-wrapper { position: relative; cursor: pointer; }
-        .movie-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; }
-        .rating-badge { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.8); color: var(--imdb); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; }
-        .movie-card-info { padding: 15px; flex-grow: 1; cursor: pointer; }
-        .movie-card-info h3 { font-size: 0.9rem; margin-bottom: 4px; line-height: 1.3; }
-        .movie-card-info p { font-size: 0.75rem; color: var(--text-dim); }
+        .movie-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
+        .rating-badge { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.85); color: var(--imdb); padding: 3px 7px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+        .movie-card-info { padding: 12px; flex-grow: 1; cursor: pointer; }
+        .movie-card-info h3 { font-size: 0.85rem; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .movie-card-info p { font-size: 0.7rem; color: var(--text-dim); }
         
-        .add-to-list-btn { width: 100%; padding: 10px; background: #2c3440; border: none; color: #fff; cursor: pointer; font-size: 0.8rem; border-top: 1px solid rgba(255,255,255,0.05); transition: 0.2s; }
+        .add-to-list-btn { width: 100%; padding: 8px; background: #242c35; border: none; color: #fff; cursor: pointer; font-size: 0.75rem; transition: 0.2s; border-top: 1px solid rgba(255,255,255,0.05); }
         .add-to-list-btn:hover { background: var(--accent); color: #000; }
 
-        /* Modal */
-        #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 2000; padding: 20px; }
-        .modal-content { background: var(--bg-card); width: 100%; max-width: 1000px; border-radius: 16px; display: flex; overflow: hidden; position: relative; max-height: 90vh; }
-        .modal-close { position: absolute; top: 20px; right: 20px; cursor: pointer; z-index: 10; font-size: 1.8rem; color: #fff; text-shadow: 0 0 10px #000; }
-        .modal-poster { width: 40%; flex-shrink: 0; }
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 40px; padding: 20px; }
+        .page-btn { padding: 8px 16px; background: var(--bg-card); border: 1px solid var(--accent); color: var(--accent); border-radius: 20px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .page-btn:hover:not(:disabled) { background: var(--accent); color: #000; }
+
+        /* Modal Details */
+        #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.92); backdrop-filter: blur(10px); display: none; justify-content: center; align-items: center; z-index: 2000; padding: 20px; }
+        .modal-content { background: var(--bg-card); width: 100%; max-width: 950px; border-radius: 15px; display: flex; overflow: hidden; position: relative; max-height: 90vh; border: 1px solid rgba(255,255,255,0.1); }
+        .modal-poster { width: 35%; flex-shrink: 0; }
         .modal-poster img { width: 100%; height: 100%; object-fit: cover; }
         .modal-details { padding: 40px; overflow-y: auto; flex: 1; }
-        .badges { display: flex; gap: 10px; margin: 20px 0; }
-        .badge { padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; display: flex; align-items: center; gap: 6px; }
+        .badges { display: flex; gap: 12px; margin: 20px 0; }
+        .badge { padding: 8px 14px; border-radius: 6px; font-weight: 800; font-size: 0.8rem; display: flex; align-items: center; gap: 8px; }
 
-        .loader { width: 40px; height: 40px; border: 4px solid var(--accent); border-bottom-color: transparent; border-radius: 50%; display: none; animation: rotation 1s linear infinite; margin: 20px auto; }
+        .loader { width: 50px; height: 50px; border: 5px solid var(--accent); border-bottom-color: transparent; border-radius: 50%; display: none; animation: rotation 1s linear infinite; margin: 40px auto; }
         @keyframes rotation { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        @media (max-width: 850px) {
-            aside { display: none; }
+        @media (max-width: 900px) {
+            aside { transform: translateX(-100%); width: 0; padding: 0; }
             main { margin-left: 0; }
-            .modal-content { flex-direction: column; overflow-y: auto; }
-            .modal-poster { width: 100%; height: 300px; }
+            .modal-content { flex-direction: column; }
+            .modal-poster { width: 100%; height: 250px; }
         }
     </style>
 </head>
 <body data-theme="dark">
 
-    <aside>
-        <div class="logo" onclick="location.reload()"><i class="fas fa-compact-disc"></i> CINE CATALOG</div>
+    <aside id="sidebar">
+        <div class="logo" onclick="window.location.reload()">
+            <i class="fas fa-ticket-alt"></i> CINE MASTER
+        </div>
         
         <div class="menu-section">
-            <p class="menu-title">Descobrir</p>
-            <div class="menu-item" onclick="loadMovies('trending')"><i class="fas fa-fire"></i> Tendências</div>
-            <div class="menu-item" onclick="loadMovies('top_rated')"><i class="fas fa-star"></i> Melhor Avaliados</div>
+            <p class="menu-title">Catálogo Base</p>
+            <div class="menu-item active" onclick="changeMode('trending')"><i class="fas fa-chart-line"></i> Tendências Atuais</div>
+            <div class="menu-item" onclick="changeMode('top_rated')"><i class="fas fa-award"></i> Oscar & Crítica</div>
         </div>
 
         <div class="menu-section">
-            <p class="menu-title">Filtros Inteligentes</p>
-            <select class="filter-select" id="filter-genre" onchange="applyFilters()">
-                <option value="">Gêneros (Todos)</option>
-                <option value="28">Ação</option><option value="35">Comédia</option><option value="18">Drama</option>
-                <option value="27">Terror</option><option value="878">Ficção Científica</option><option value="10749">Romance</option>
+            <p class="menu-title">Filtros Avançados</p>
+            <label class="menu-title" style="font-size: 0.6rem">Gênero</label>
+            <select class="filter-select" id="filter-genre" onchange="resetAndLoad()">
+                <option value="">Todos os Gêneros</option>
+                <option value="99">Documentários</option>
+                <option value="28">Ação</option>
+                <option value="12">Aventura</option>
+                <option value="16">Animação</option>
+                <option value="35">Comédia</option>
+                <option value="80">Crime</option>
+                <option value="18">Drama</option>
+                <option value="14">Fantasia</option>
+                <option value="27">Terror</option>
+                <option value="878">Ficção Científica</option>
+                <option value="10749">Romance</option>
+                <option value="53">Suspense</option>
             </select>
-            <select class="filter-select" id="filter-year" onchange="applyFilters()">
-                <option value="">Ano (Todos)</option>
-                <option value="2025">2025</option><option value="2024">2024</option><option value="2023">2023</option>
-                <option value="2022">2022</option><option value="2010">Anos 2010</option><option value="2000">Anos 2000</option>
+
+            <label class="menu-title" style="font-size: 0.6rem">Período / Década</label>
+            <select class="filter-select" id="filter-period" onchange="resetAndLoad()">
+                <option value="">Qualquer Época</option>
+                <option value="2025">2025</option>
+                <option value="2024">2024</option>
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+                <option value="2021">2021</option>
+                <option value="2020">2020</option>
+                <option value="2010-2019">Década de 2010</option>
+                <option value="2000-2009">Década de 2000</option>
+                <option value="1990-1999">Anos 90</option>
+                <option value="1980-1989">Anos 80</option>
+                <option value="1970-1979">Anos 70</option>
+                <option value="1900-1969">Clássicos Antigos</option>
+            </select>
+
+            <label class="menu-title" style="font-size: 0.6rem">Ordenar por</label>
+            <select class="filter-select" id="filter-sort" onchange="resetAndLoad()">
+                <option value="popularity.desc">Mais Populares</option>
+                <option value="primary_release_date.desc">Mais Recentes</option>
+                <option value="primary_release_date.asc">Mais Antigos</option>
+                <option value="vote_average.desc">Melhor Avaliados</option>
             </select>
         </div>
 
         <div class="menu-section">
-            <p class="menu-title">Minhas Listas</p>
+            <p class="menu-title">Minhas Coleções</p>
             <div id="sidebar-lists"></div>
-            <div class="menu-item" style="color:var(--accent)" onclick="createNewList()">
-                <i class="fas fa-plus-square"></i> Criar Nova Lista
+            <div class="menu-item" style="color:var(--accent); font-weight: bold" onclick="createNewList()">
+                <i class="fas fa-folder-plus"></i> Nova Lista
             </div>
         </div>
     </aside>
@@ -109,15 +148,21 @@
         <header>
             <div class="search-container">
                 <i class="fas fa-search"></i>
-                <input type="text" id="global-search" placeholder="Título, diretor ou elenco..." onkeyup="debounceSearch(event)">
+                <input type="text" id="global-search" placeholder="Pesquise por títulos, diretores ou elenco..." onkeyup="handleSearch(event)">
             </div>
-            <div class="theme-toggle" onclick="toggleTheme()" style="cursor:pointer">
-                <i class="fas fa-adjust"></i>
+            <div class="theme-toggle" onclick="toggleTheme()">
+                <i class="fas fa-moon"></i>
             </div>
         </header>
 
         <div class="loader" id="main-loader"></div>
         <div class="results-grid" id="main-grid"></div>
+
+        <div class="pagination" id="pagination-ctrl">
+            <button class="page-btn" id="btn-prev" onclick="changePage(-1)"><i class="fas fa-chevron-left"></i> Anterior</button>
+            <span id="page-indicator" style="font-weight: bold">Página 1</span>
+            <button class="page-btn" id="btn-next" onclick="changePage(1)">Próxima <i class="fas fa-chevron-right"></i></button>
+        </div>
     </main>
 
     <div id="modal-overlay" onclick="closeModal()">
@@ -135,17 +180,160 @@
         const MASTER_KEY = '$2a$10$T3C70qhYrKZMczxOir2xUeypvmxIZ89FRuioGyxBSh/gZorc4iBAy';
 
         let appData = { lists: [] };
-        let currentResults = [];
+        let currentPage = 1;
+        let currentMode = 'trending'; // trending, discover, search
+        let searchQuery = '';
         let timer;
 
         async function init() {
-            await syncData('GET');
-            loadMovies('trending');
+            await syncJSONBin('GET');
+            loadContent();
             renderListsSidebar();
         }
 
-        // --- FETCH DE DADOS ---
-        async function syncData(method) {
+        // --- CORE LOGIC ---
+        async function loadContent() {
+            showLoader(true);
+            let url = '';
+            
+            if (currentMode === 'search') {
+                url = `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(searchQuery)}&page=${currentPage}`;
+            } else if (currentMode === 'trending') {
+                url = `https://api.themoviedb.org/3/trending/movie/week?api_key=${TMDB_KEY}&language=pt-BR&page=${currentPage}`;
+            } else {
+                const genre = document.getElementById('filter-genre').value;
+                const period = document.getElementById('filter-period').value;
+                const sort = document.getElementById('filter-sort').value;
+                
+                url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&sort_by=${sort}&page=${currentPage}`;
+                if (genre) url += `&with_genres=${genre}`;
+                
+                if (period) {
+                    if (period.includes('-')) {
+                        const [start, end] = period.split('-');
+                        url += `&primary_release_date.gte=${start}-01-01&primary_release_date.lte=${end}-12-31`;
+                    } else {
+                        url += `&primary_release_year=${period}`;
+                    }
+                }
+            }
+
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                renderGrid(data.results);
+                updatePagination(data.page, data.total_pages);
+            } catch (e) { console.error("Erro ao carregar:", e); }
+            showLoader(false);
+        }
+
+        function renderGrid(movies) {
+            const grid = document.getElementById('main-grid');
+            if (!movies || movies.length === 0) {
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; padding: 50px;">Nenhum título encontrado para estes filtros.</p>`;
+                return;
+            }
+            grid.innerHTML = movies.map(m => `
+                <div class="movie-card">
+                    <div class="poster-wrapper" onclick="showMovieDetails(${m.id})">
+                        <img src="${m.poster_path ? 'https://image.tmdb.org/t/p/w500'+m.poster_path : 'https://via.placeholder.com/500x750?text=Sem+Poster'}">
+                        <div class="rating-badge"><i class="fas fa-star"></i> ${m.vote_average?.toFixed(1) || '0.0'}</div>
+                    </div>
+                    <div class="movie-card-info" onclick="showMovieDetails(${m.id})">
+                        <h3>${m.title}</h3>
+                        <p>${(m.release_date || '').split('-')[0]} • <i>${m.original_title}</i></p>
+                    </div>
+                    <button class="add-to-list-btn" onclick="addToListPrompt(${m.id}, '${m.title.replace(/'/g, "")}')">
+                        <i class="fas fa-plus"></i> Adicionar
+                    </button>
+                </div>
+            `).join('');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function showMovieDetails(id) {
+            showLoader(true);
+            try {
+                const tmdb = await (await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=pt-BR&append_to_response=credits,external_ids`)).json();
+                
+                let omdb = {};
+                if (tmdb.external_ids?.imdb_id) {
+                    omdb = await (await fetch(`https://www.omdbapi.com/?apikey=${OMDB_KEY}&i=${tmdb.external_ids.imdb_id}`)).json();
+                }
+
+                const overlay = document.getElementById('modal-overlay');
+                const body = document.getElementById('modal-body');
+                document.getElementById('modal-img').src = tmdb.poster_path ? `https://image.tmdb.org/t/p/w500${tmdb.poster_path}` : '';
+
+                const rt = omdb.Ratings?.find(r => r.Source === "Rotten Tomatoes")?.Value || "N/A";
+                const meta = omdb.Metascore !== "N/A" ? omdb.Metascore : "N/A";
+
+                body.innerHTML = `
+                    <h1 style="margin-bottom:5px">${tmdb.title}</h1>
+                    <p style="color:var(--text-dim); margin-bottom:20px">${tmdb.original_title} • ${tmdb.runtime} min • ${tmdb.release_date}</p>
+                    
+                    <div class="badges">
+                        <div class="badge" style="background:var(--imdb); color:#000" title="IMDb Score"><i class="fab fa-imdb"></i> ${omdb.imdbRating || tmdb.vote_average.toFixed(1)}</div>
+                        <div class="badge" style="background:var(--rotten)" title="Rotten Tomatoes"><i class="fas fa-apple-alt"></i> ${rt}</div>
+                        <div class="badge" style="background:var(--meta)" title="Metacritic Score"><i class="fas fa-chart-bar"></i> ${meta}</div>
+                    </div>
+
+                    <p style="margin-bottom:20px; line-height:1.6; font-size: 0.95rem">${tmdb.overview || 'Sinopse não disponível.'}</p>
+                    
+                    <div style="font-size:0.85rem; background:rgba(255,255,255,0.03); padding:15px; border-radius:8px">
+                        <p><strong>Direção:</strong> ${tmdb.credits.crew.find(c => c.job === 'Director')?.name || 'N/A'}</p>
+                        <p><strong>Elenco:</strong> ${tmdb.credits.cast.slice(0, 5).map(c => c.name).join(', ')}</p>
+                        <p><strong>Prêmios:</strong> ${omdb.Awards || 'N/A'}</p>
+                    </div>
+                `;
+                overlay.style.display = 'flex';
+            } catch (e) { alert("Erro ao carregar detalhes."); }
+            showLoader(false);
+        }
+
+        // --- UI & FILTERS ---
+        function changeMode(mode) {
+            currentMode = mode;
+            currentPage = 1;
+            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            loadContent();
+        }
+
+        function resetAndLoad() {
+            currentMode = 'discover';
+            currentPage = 1;
+            loadContent();
+        }
+
+        function handleSearch(e) {
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+                searchQuery = e.target.value;
+                if (searchQuery.length > 2) {
+                    currentMode = 'search';
+                    currentPage = 1;
+                    loadContent();
+                } else if (searchQuery.length === 0) {
+                    currentMode = 'trending';
+                    loadContent();
+                }
+            }, 600);
+        }
+
+        function changePage(delta) {
+            currentPage += delta;
+            loadContent();
+        }
+
+        function updatePagination(current, total) {
+            document.getElementById('page-indicator').innerText = `Página ${current} de ${total > 500 ? 500 : total}`;
+            document.getElementById('btn-prev').disabled = current === 1;
+            document.getElementById('btn-next').disabled = current >= total || current >= 500;
+        }
+
+        // --- DATA PERSISTENCE ---
+        async function syncJSONBin(method) {
             const url = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
             try {
                 if (method === 'GET') {
@@ -159,170 +347,59 @@
                         body: JSON.stringify(appData)
                     });
                 }
-            } catch (e) { console.error("Sync Erro:", e); }
+            } catch (e) { console.error("Sync Error"); }
         }
 
-        async function loadMovies(type) {
-            showLoader(true);
-            let endpoint = type === 'trending' ? 'trending/movie/week' : 'movie/top_rated';
-            const res = await fetch(`https://api.themoviedb.org/3/${endpoint}?api_key=${TMDB_KEY}&language=pt-BR`);
-            const data = await res.json();
-            renderGrid(data.results);
-            showLoader(false);
-        }
-
-        async function applyFilters() {
-            showLoader(true);
-            const genre = document.getElementById('filter-genre').value;
-            const year = document.getElementById('filter-year').value;
-            let url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&sort_by=popularity.desc`;
-            if (genre) url += `&with_genres=${genre}`;
-            if (year) url += `&primary_release_year=${year}`;
-            
-            const res = await fetch(url);
-            const data = await res.json();
-            renderGrid(data.results);
-            showLoader(false);
-        }
-
-        async function getFullDetails(id) {
-            showLoader(true);
-            try {
-                const tmdbRes = await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=pt-BR&append_to_response=credits,external_ids`);
-                const movie = await tmdbRes.json();
-                
-                let omdb = {};
-                if (movie.external_ids?.imdb_id) {
-                    const omdbRes = await fetch(`https://www.omdbapi.com/?apikey=${OMDB_KEY}&i=${movie.external_ids.imdb_id}`);
-                    omdb = await omdbRes.json();
-                }
-                openModal(movie, omdb);
-            } catch (err) {
-                alert("Erro ao carregar detalhes. Verifique a conexão.");
-            }
-            showLoader(false);
-        }
-
-        // --- RENDERIZAÇÃO ---
-        function renderGrid(movies) {
-            const grid = document.getElementById('main-grid');
-            grid.innerHTML = movies.map(m => {
-                const poster = m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : 'https://via.placeholder.com/500x750?text=Sem+Poster';
-                const year = (m.release_date || '').split('-')[0];
-                return `
-                    <div class="movie-card">
-                        <div class="poster-wrapper" onclick="getFullDetails(${m.id})">
-                            <img src="${poster}">
-                            <div class="rating-badge"><i class="fas fa-star"></i> ${m.vote_average.toFixed(1)}</div>
-                        </div>
-                        <div class="movie-card-info" onclick="getFullDetails(${m.id})">
-                            <h3>${m.title}</h3>
-                            <p>${year} • <i>${m.original_title}</i></p>
-                        </div>
-                        <button class="add-to-list-btn" onclick="promptAddToList(${m.id}, '${m.title.replace(/'/g, "")}')">
-                            <i class="fas fa-plus"></i> Adicionar à lista
-                        </button>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function openModal(m, o) {
-            const overlay = document.getElementById('modal-overlay');
-            const body = document.getElementById('modal-body');
-            document.getElementById('modal-img').src = m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : '';
-
-            const dir = m.credits?.crew.find(c => c.job === 'Director')?.name || 'Desconhecido';
-            const cast = m.credits?.cast.slice(0, 5).map(c => c.name).join(', ') || 'N/A';
-
-            body.innerHTML = `
-                <h1 style="margin-bottom:10px">${m.title}</h1>
-                <p style="color:var(--text-dim)">${m.original_title} • ${m.runtime} min • ${m.release_date}</p>
-                
-                <div class="badges">
-                    <div class="badge" style="background:var(--imdb); color:#000">IMDb ${o.imdbRating || 'N/A'}</div>
-                    <div class="badge" style="background:var(--rotten)">🍅 ${o.Ratings?.find(r => r.Source === 'Rotten Tomatoes')?.Value || 'N/A'}</div>
-                    <div class="badge" style="background:var(--meta)">Metacritic ${o.Metascore || 'N/A'}</div>
-                </div>
-
-                <p style="margin-bottom:20px; line-height:1.6">${m.overview || 'Sem sinopse disponível.'}</p>
-                <div style="font-size:0.9rem; line-height:1.8">
-                    <p><strong>Direção:</strong> ${dir}</p>
-                    <p><strong>Elenco:</strong> ${cast}</p>
-                    <p><strong>Prêmios:</strong> ${o.Awards || 'N/A'}</p>
-                </div>
-            `;
-            overlay.style.display = 'flex';
-        }
-
-        // --- LÓGICA DE LISTAS ---
         async function createNewList() {
-            const name = prompt("Nome da lista:");
+            const name = prompt("Nome da Coleção:");
             if (!name) return;
-            appData.lists.push({ id: Date.now().toString(), name: name, items: [] });
+            appData.lists.push({ id: Date.now().toString(), name, items: [] });
             renderListsSidebar();
-            await syncData('PUT');
+            await syncJSONBin('PUT');
         }
 
-        function promptAddToList(movieId, title) {
-            if (appData.lists.length === 0) {
-                alert("Crie uma lista primeiro na barra lateral!");
-                return;
-            }
-            const listNames = appData.lists.map((l, i) => `${i + 1}. ${l.name}`).join('\n');
-            const choice = prompt(`Adicionar "${title}" em qual lista?\n${listNames}\n(Digite o número)`);
-            
-            const index = parseInt(choice) - 1;
-            if (appData.lists[index]) {
-                if (!appData.lists[index].items.includes(movieId)) {
-                    appData.lists[index].items.push(movieId);
-                    syncData('PUT');
+        function addToListPrompt(movieId, title) {
+            if (appData.lists.length === 0) return alert("Crie uma lista na lateral primeiro!");
+            const options = appData.lists.map((l, i) => `${i+1}. ${l.name}`).join('\n');
+            const choice = prompt(`Adicionar "${title}" a qual lista?\n\n${options}`);
+            const idx = parseInt(choice) - 1;
+            if (appData.lists[idx]) {
+                if (!appData.lists[idx].items.includes(movieId)) {
+                    appData.lists[idx].items.push(movieId);
+                    syncJSONBin('PUT');
                     renderListsSidebar();
-                    alert("Adicionado com sucesso!");
-                } else {
-                    alert("Este filme já está na lista.");
-                }
+                    alert("Salvo!");
+                } else { alert("Já está na lista!"); }
             }
         }
 
         function renderListsSidebar() {
-            const div = document.getElementById('sidebar-lists');
-            div.innerHTML = appData.lists.map(l => `
-                <div class="menu-item" onclick="viewListItems('${l.id}')">
-                    <i class="fas fa-bookmark"></i> ${l.name} (${l.items.length})
+            const container = document.getElementById('sidebar-lists');
+            container.innerHTML = appData.lists.map(l => `
+                <div class="menu-item" onclick="viewList('${l.id}')">
+                    <i class="fas fa-bookmark"></i> ${l.name} <span style="margin-left:auto; font-size:0.7rem; opacity:0.5">${l.items.length}</span>
                 </div>
             `).join('');
         }
 
-        async function viewListItems(listId) {
-            const list = appData.lists.find(l => l.id === listId);
-            if (!list || list.items.length === 0) return alert("Lista vazia!");
+        async function viewList(id) {
+            const list = appData.lists.find(l => l.id === id);
+            if (!list || list.items.length === 0) return alert("Lista vazia.");
             showLoader(true);
-            const fetches = list.items.map(id => fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=pt-BR`).then(r => r.json()));
-            const results = await Promise.all(fetches);
-            renderGrid(results);
+            const data = await Promise.all(list.items.map(mid => fetch(`https://api.themoviedb.org/3/movie/${mid}?api_key=${TMDB_KEY}&language=pt-BR`).then(r => r.json())));
+            renderGrid(data);
+            document.getElementById('pagination-ctrl').style.display = 'none';
             showLoader(false);
         }
 
-        // --- AUXILIARES ---
-        function debounceSearch(e) {
-            clearTimeout(timer);
-            timer = setTimeout(async () => {
-                const q = e.target.value;
-                if (!q) return loadMovies('trending');
-                showLoader(true);
-                const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&language=pt-BR&query=${q}`);
-                const data = await res.json();
-                renderGrid(data.results);
-                showLoader(false);
-            }, 600);
-        }
-
-        function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+        // --- UTILS ---
         function showLoader(s) { document.getElementById('main-loader').style.display = s ? 'block' : 'none'; }
+        function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
         function toggleTheme() { 
             const b = document.body;
             b.setAttribute('data-theme', b.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+            const icon = document.querySelector('.theme-toggle i');
+            icon.className = b.getAttribute('data-theme') === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
         }
 
         init();
