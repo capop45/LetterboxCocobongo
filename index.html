@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineCatalog Pro | Gerenciador de Filmes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-body: #14181c;
+            --bg-card: #1b2228;
+            --bg-sidebar: #181d23;
+            --text-main: #ffffff;
+            --text-dim: #9ab;
+            --accent: #00e054;
+            --imdb: #f5c518;
+            --rotten: #fa320a;
+            --meta: #66cc33;
+            --transition: all 0.3s ease;
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f4f7f6;
+            --bg-card: #ffffff;
+            --bg-sidebar: #e2e8f0;
+            --text-main: #14181c;
+            --text-dim: #4a5568;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            transition: var(--transition);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        aside {
+            width: 260px;
+            background: var(--bg-sidebar);
+            padding: 20px;
+            border-right: 1px solid rgba(255,255,255,0.05);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--accent); margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
+
+        .menu-section { margin-bottom: 25px; }
+        .menu-title { font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 12px; }
+        .menu-item { 
+            padding: 10px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 10px; 
+            transition: var(--transition); color: var(--text-dim);
+        }
+        .menu-item:hover, .menu-item.active { background: rgba(0,224,84,0.1); color: var(--accent); }
+
+        /* Main Content */
+        main { flex: 1; margin-left: 260px; padding: 20px; }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; gap: 20px;
+        }
+
+        .search-container { flex: 1; position: relative; max-width: 600px; }
+        .search-container input {
+            width: 100%; padding: 12px 45px; border-radius: 30px; border: none;
+            background: var(--bg-card); color: var(--text-main); font-size: 1rem;
+        }
+        .search-container i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-dim); }
+
+        .theme-toggle { cursor: pointer; font-size: 1.2rem; }
+
+        /* Grid */
+        .results-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 25px;
+        }
+
+        .movie-card {
+            background: var(--bg-card); border-radius: 8px; overflow: hidden; cursor: pointer;
+            transition: transform 0.2s; position: relative; border: 1px solid rgba(255,255,255,0.05);
+        }
+        .movie-card:hover { transform: translateY(-5px); }
+        .movie-card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
+        .movie-card-info { padding: 12px; }
+        .movie-card-info h3 { font-size: 0.95rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .movie-card-info p { font-size: 0.75rem; color: var(--text-dim); }
+        .movie-card-info .original-title { font-style: italic; opacity: 0.7; display: block; }
+
+        /* Modal */
+        #modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 1000; padding: 20px;
+        }
+        .modal-content {
+            background: var(--bg-card); width: 100%; max-width: 900px; border-radius: 12px;
+            display: flex; overflow: hidden; position: relative; max-height: 90vh;
+        }
+        .modal-close { position: absolute; top: 20px; right: 20px; cursor: pointer; z-index: 10; font-size: 1.5rem; }
+        .modal-poster { width: 350px; flex-shrink: 0; }
+        .modal-poster img { width: 100%; height: 100%; object-fit: cover; }
+        .modal-details { padding: 40px; overflow-y: auto; flex: 1; }
+        
+        .badges { display: flex; gap: 15px; margin: 20px 0; flex-wrap: wrap; }
+        .badge { padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
+        .badge-imdb { background: var(--imdb); color: #000; }
+        .badge-rotten { background: var(--rotten); color: #fff; }
+        .badge-meta { background: var(--meta); color: #fff; }
+
+        .list-action { margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+        select { padding: 10px; border-radius: 5px; background: #2c3440; color: white; border: none; width: 100%; cursor: pointer; }
+
+        /* Loader */
+        .loader { width: 30px; height: 30px; border: 3px solid var(--accent); border-bottom-color: transparent; border-radius: 50%; display: none; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        @media (max-width: 768px) {
+            aside { display: none; }
+            main { margin-left: 0; }
+            .modal-content { flex-direction: column; }
+            .modal-poster { width: 100%; height: 250px; }
+        }
+    </style>
+</head>
+<body data-theme="dark">
+
+    <aside>
+        <div class="logo"><i class="fas fa-film"></i> CINE CAT</div>
+        
+        <div class="menu-section">
+            <p class="menu-title">Descobrir</p>
+            <div class="menu-item active" onclick="loadTrending()"><i class="fas fa-fire"></i> Em Alta</div>
+        </div>
+
+        <div class="menu-section">
+            <p class="menu-title">Minhas Listas</p>
+            <div id="sidebar-lists">
+                </div>
+            <div class="menu-item" style="margin-top:10px" onclick="createNewList()">
+                <i class="fas fa-plus-circle"></i> Criar Lista
+            </div>
+        </div>
+    </aside>
+
+    <main>
+        <header>
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="global-search" placeholder="Pesquisar filmes, séries ou pessoas..." onkeyup="debounceSearch(event)">
+            </div>
+            <div class="theme-toggle" onclick="toggleTheme()">
+                <i class="fas fa-moon" id="theme-icon"></i>
+            </div>
+        </header>
+
+        <div id="loader-container" style="display: flex; justify-content: center; margin-bottom: 20px;">
+            <div class="loader" id="main-loader"></div>
+        </div>
+
+        <div class="results-grid" id="main-grid">
+            </div>
+    </main>
+
+    <div id="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <div class="modal-poster">
+                <img src="" id="modal-img" alt="Poster">
+            </div>
+            <div class="modal-details" id="modal-body">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // Configurações
+        const TMDB_KEY = '61bfe826a425f60001a4dc8365ea05dc';
+        const OMDB_KEY = 'e4649501';
+        const BIN_ID = '6999fe9843b1c97be991ae3f';
+        const MASTER_KEY = '$2a$10$T3C70qhYrKZMczxOir2xUeypvmxIZ89FRuioGyxBSh/gZorc4iBAy';
+
+        let appData = { lists: [] };
+        let debounceTimer;
+
+        // Inicialização
+        async function init() {
+            await jsonbinSync('GET');
+            loadTrending();
+            renderListsSidebar();
+        }
+
+        // --- LÓGICA DE DADOS ---
+
+        async function jsonbinSync(method) {
+            const url = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-Master-Key': MASTER_KEY
+            };
+
+            try {
+                if (method === 'GET') {
+                    const res = await fetch(`${url}/latest`, { headers });
+                    const data = await res.json();
+                    appData = data.record || { lists: [] };
+                } else {
+                    await fetch(url, {
+                        method: 'PUT',
+                        headers,
+                        body: JSON.stringify(appData)
+                    });
+                }
+            } catch (err) { console.error("Erro Sync:", err); }
+        }
+
+        async function searchMedia(query) {
+            if (!query) return loadTrending();
+            showLoader(true);
+            const res = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            renderGrid(data.results);
+            showLoader(false);
+        }
+
+        async function loadTrending() {
+            showLoader(true);
+            const res = await fetch(`https://api.themoviedb.org/3/trending/all/week?api_key=${TMDB_KEY}&language=pt-BR`);
+            const data = await res.json();
+            renderGrid(data.results);
+            showLoader(false);
+        }
+
+        async function getDetails(id, type) {
+            showLoader(true);
+            // TMDB Details + Credits
+            const tmdbRes = await fetch(`https://api.themoviedb.org/3/${type}/${id}?api_key=${TMDB_KEY}&language=pt-BR&append_to_response=credits,external_ids`);
+            const movie = await tmdbRes.json();
+            
+            // OMDB Ratings (Usando o IMDB ID retornado pelo TMDB)
+            let omdbData = {};
+            const imdbId = movie.external_ids?.imdb_id || movie.imdb_id;
+            if (imdbId) {
+                const omdbRes = await fetch(`https://www.omdbapi.com/?apikey=${OMDB_KEY}&i=${imdbId}`);
+                omdbData = await omdbRes.json();
+            }
+
+            openModal(movie, omdbData);
+            showLoader(false);
+        }
+
+        // --- UI RENDERING ---
+
+        function renderGrid(items) {
+            const grid = document.getElementById('main-grid');
+            grid.innerHTML = items.map(item => {
+                const title = item.title || item.name || 'Sem título';
+                const originalTitle = item.original_title || item.original_name || '';
+                const year = (item.release_date || item.first_air_date || '').split('-')[0];
+                const poster = item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Poster';
+                const type = item.media_type || (item.title ? 'movie' : 'tv');
+
+                return `
+                    <div class="movie-card" onclick="getDetails(${item.id}, '${type}')">
+                        <img src="${poster}" alt="${title}">
+                        <div class="movie-card-info">
+                            <h3>${title}</h3>
+                            <p>${year ? year : ''} <span class="original-title">(${originalTitle})</span></p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openModal(movie, omdb) {
+            const modal = document.getElementById('modal-overlay');
+            const body = document.getElementById('modal-body');
+            const img = document.getElementById('modal-img');
+
+            img.src = movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Poster';
+
+            const director = movie.credits.crew.find(c => c.job === 'Director')?.name || 'N/A';
+            const writers = movie.credits.crew.filter(c => c.department === 'Writing').slice(0, 2).map(w => w.name).join(', ') || 'N/A';
+            const cast = movie.credits.cast.slice(0, 5).map(c => c.name).join(', ');
+
+            body.innerHTML = `
+                <h1 style="margin-bottom:5px">${movie.title || movie.name}</h1>
+                <p style="color:var(--text-dim); margin-bottom:20px">${movie.original_title || movie.original_name} • ${movie.release_date || movie.first_air_date}</p>
+                
+                <div class="badges">
+                    <div class="badge badge-imdb"><i class="fab fa-imdb"></i> ${omdb.imdbRating || 'N/A'}</div>
+                    <div class="badge badge-rotten">🍅 ${omdb.Ratings?.find(r => r.Source === 'Rotten Tomatoes')?.Value || 'N/A'}</div>
+                    <div class="badge badge-meta">Metacritic: ${omdb.Metascore || 'N/A'}</div>
+                </div>
+
+                <p style="line-height:1.6; margin-bottom:20px">${movie.overview || 'Sinopse não disponível em português.'}</p>
+                
+                <div style="font-size: 0.9rem; display:grid; gap:8px">
+                    <p><strong>Direção:</strong> ${director}</p>
+                    <p><strong>Roteiro:</strong> ${writers}</p>
+                    <p><strong>Elenco:</strong> ${cast}</p>
+                    <p><strong>Prêmios:</strong> ${omdb.Awards || 'N/A'}</p>
+                </div>
+
+                <div class="list-action">
+                    <label style="display:block; margin-bottom:8px; font-size:0.8rem">ADICIONAR À UMA LISTA:</label>
+                    <select onchange="addToList(${movie.id}, this.value, '${movie.title || movie.name}')">
+                        <option value="">Selecione...</option>
+                        ${appData.lists.map(l => `<option value="${l.id}">${l.name}</option>`).join('')}
+                    </select>
+                </div>
+            `;
+
+            modal.style.display = 'flex';
+        }
+
+        // --- GERENCIAMENTO DE LISTAS ---
+
+        async function createNewList() {
+            const name = prompt("Nome da nova lista:");
+            if (!name) return;
+            
+            const newList = {
+                id: crypto.randomUUID(),
+                name: name,
+                items: []
+            };
+            
+            appData.lists.push(newList);
+            renderListsSidebar();
+            await jsonbinSync('PUT');
+        }
+
+        async function addToList(movieId, listId, title) {
+            if (!listId) return;
+            const list = appData.lists.find(l => l.id === listId);
+            if (!list.items.includes(movieId)) {
+                list.items.push(movieId);
+                await jsonbinSync('PUT');
+                alert(`"${title}" adicionado à lista ${list.name}!`);
+            } else {
+                alert("Este item já está na lista.");
+            }
+        }
+
+        function renderListsSidebar() {
+            const container = document.getElementById('sidebar-lists');
+            container.innerHTML = appData.lists.map(l => `
+                <div class="menu-item" onclick="viewList('${l.id}')">
+                    <i class="fas fa-list"></i> ${l.name} (${l.items.length})
+                </div>
+            `).join('');
+        }
+
+        async function viewList(listId) {
+            const list = appData.lists.find(l => l.id === listId);
+            showLoader(true);
+            
+            const promises = list.items.map(id => 
+                fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${TMDB_KEY}&language=pt-BR`)
+                .then(r => r.json())
+            );
+            
+            const results = await Promise.all(promises);
+            renderGrid(results);
+            showLoader(false);
+        }
+
+        // --- UTILITÁRIOS ---
+
+        function debounceSearch(e) {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => searchMedia(e.target.value), 600);
+        }
+
+        function closeModal(e) {
+            document.getElementById('modal-overlay').style.display = 'none';
+        }
+
+        function showLoader(show) {
+            document.getElementById('main-loader').style.display = show ? 'block' : 'none';
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.setAttribute('data-theme', 'light');
+                icon.className = 'fas fa-sun';
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                icon.className = 'fas fa-moon';
+            }
+        }
+
+        // Inicializa o App
+        init();
+    </script>
+</body>
+</html>
