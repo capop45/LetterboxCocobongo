@@ -161,61 +161,77 @@
             border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        /* ----- CUSTOMIZAÇÕES DO VIDEO.JS (Força Bruta com Flexbox para Mobile) ----- */
+        /* ----- CUSTOMIZAÇÕES DO VIDEO.JS: ARQUITETURA DE 2 CAMADAS ----- */
         
-        /* Trava a altura da barra inferior e usa flexbox para garantir que NADA fuja dela */
         .video-js.vjs-theme-city .vjs-control-bar {
-            height: 4em !important;
-            background-color: rgba(0, 0, 0, 0.9) !important;
             display: flex !important;
+            height: 3.8em !important;
+            background-color: rgba(0, 0, 0, 0.9) !important;
             align-items: center !important;
-            bottom: 0 !important;
             padding: 0 5px !important;
         }
 
-        /* Botões perfeitamente centralizados geometricamente */
-        .video-js .vjs-button {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            height: 100% !important;
-        }
-        
-        /* Remove a linha de altura problemática e trava o tamanho da fonte do ícone */
-        .video-js .vjs-button > .vjs-icon-placeholder:before {
-            position: relative !important;
-            font-size: 2.2em !important;
-            line-height: 1 !important; /* Reset fundamental */
-        }
-
-        /* Barra de Progresso segurando o toque sem rolar a tela */
+        /* 1. Joga a barra de progresso para FORA da linha de botões, flutuando acima deles */
         .video-js .vjs-progress-control {
+            position: absolute !important;
+            top: -1.2em !important; /* Desloca pra cima da barra preta */
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            height: 1.5em !important;
+            padding: 0 10px !important;
             display: flex !important;
             align-items: center !important;
             touch-action: none !important; 
         }
+
+        /* Ajustes do desenho do slider */
         .video-js .vjs-progress-holder {
             height: 0.6em !important; 
             border-radius: 6px !important;
-            margin: 0 10px !important;
+            margin: 0 !important;
+            width: 100% !important;
         }
         .video-js .vjs-play-progress {
             background-color: var(--accent) !important;
             border-radius: 6px !important;
         }
-        /* Bolinha do slider do tempo presa no centro da barra de progresso */
+        /* Bolinha da barra redonda e sempre visível */
         .video-js .vjs-play-progress:before {
             display: block !important;
             font-size: 1.5em !important;
-            top: -0.45em !important; /* Puxa levemente para cima pra centralizar na barra que tem 0.6em */
+            top: -0.45em !important;
             right: -0.4em !important;
             color: #fff !important;
             text-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
         }
 
-        /* Controle de Volume Vertical bem espesso */
+        /* 2. Empurrador Espacial: Garante que o Fullscreen cole no canto direito */
+        .video-js .vjs-custom-control-spacer {
+            display: flex !important;
+            flex: 1 1 auto !important; /* Estica para empurrar o resto */
+        }
+
+        /* 3. Evita que os botões excedam a largura da tela */
+        .video-js .vjs-button {
+            width: 2.8em !important; /* Reduz ligeiramente a largura de cada botão */
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .vjs-seek-button { width: 2.8em !important; }
+        .video-js .vjs-playback-rate { width: 3.5em !important; } /* Um pouco maior pro texto 1.25x caber */
+
+        .video-js .vjs-button > .vjs-icon-placeholder:before {
+            position: relative !important;
+            font-size: 2em !important;
+            line-height: 1 !important; 
+        }
+
+        /* Volume Vertical Ajustado */
         .video-js .vjs-volume-panel {
-            width: 3.5em !important;
+            width: 3em !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
@@ -225,10 +241,13 @@
             width: 0.8em !important; 
             margin: 0 auto !important;
         }
-        .vjs-slider-vertical .vjs-volume-level:before {
-            left: -0.2em !important; /* Ajusta a bolinha do volume no eixo X */
+        .vjs-slider-vertical .vjs-volume-level:before { left: -0.2em !important; }
+
+        /* 4. Corrige as legendas sumindo ou escondidas atrás dos botões */
+        .video-js .vjs-text-track-display {
+            bottom: 4.5em !important; /* Eleva a legenda acima da nova área de controle */
+            pointer-events: none !important;
         }
-        .vjs-seek-button { width: 3em !important; }
     </style>
 </head>
 <body data-theme="dark">
@@ -600,19 +619,24 @@
 
             playerInstancia.src({ type: tipoVideo, src: fonteVideo });
 
+            // Remove legendas antigas
             const tracksAnteriores = playerInstancia.remoteTextTracks();
             while (tracksAnteriores.length > 0) {
                 playerInstancia.removeRemoteTextTrack(tracksAnteriores[0]);
             }
 
+            // Adiciona e FORÇA a exibição da nova legenda
             if (fonteSub) {
-                playerInstancia.addRemoteTextTrack({
+                let novaLegenda = playerInstancia.addRemoteTextTrack({
                     kind: 'captions',
                     src: fonteSub,
                     srclang: 'pt-br',
                     label: 'Português',
                     default: true
                 }, true);
+                
+                // O segredo para forçar o carregamento imediato da legenda no Video.js
+                novaLegenda.track.mode = 'showing';
             }
 
             playerInstancia.load();
