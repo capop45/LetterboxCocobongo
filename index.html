@@ -161,53 +161,63 @@
             border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        /* ----- CUSTOMIZAÇÕES DO VIDEO.JS (Aprimorado para Mobile) ----- */
+        /* ----- CUSTOMIZAÇÕES DO VIDEO.JS (Limpo e Seguro para Mobile) ----- */
         
-        /* Deixa a barra inferior de controles mais alta e com margem interna */
-        .video-js .vjs-control-bar { height: 4.5em; background-color: rgba(0, 0, 0, 0.85); padding: 0 5px; }
-        
-        /* Aumenta os ícones gerais */
-        .video-js .vjs-button > .vjs-icon-placeholder:before { font-size: 2.4em; line-height: 1.8; }
-        
-        /* Aumenta a espessura da barra de progresso do vídeo (Slider) */
-        .video-js .vjs-progress-control { display: flex; align-items: center; height: 100%; }
-        .video-js .vjs-progress-holder { height: 0.8em; border-radius: 8px; margin: 0 15px; }
-        .video-js .vjs-play-progress { background-color: var(--accent); border-radius: 8px; }
-        
-        /* Força a bolinha (knob) a aparecer sempre e ser redonda, mesmo sem mouse hover */
+        /* Ajuste da barra principal para não esmagar os botões */
+        .video-js.vjs-theme-city .vjs-control-bar {
+            background-color: rgba(0, 0, 0, 0.85);
+            height: 3.5em; /* Altura segura */
+        }
+
+        /* BARRA DE PROGRESSO E SLIDER 
+           A propriedade touch-action: none previne que a tela role no celular, 
+           permitindo que a bolinha e a cor sigam o dedo instantaneamente.
+        */
+        .video-js .vjs-progress-control {
+            touch-action: none; 
+            padding-top: 10px; /* Aumenta a área de toque sem engrossar a barra visual */
+        }
+        .video-js .vjs-progress-holder {
+            height: 0.6em; 
+            border-radius: 6px;
+        }
+        .video-js .vjs-play-progress {
+            background-color: var(--accent);
+            border-radius: 6px;
+        }
+        /* Força a bolinha a ficar perfeitamente redonda e sempre visível */
         .video-js .vjs-play-progress:before {
             display: block !important;
             font-size: 1.6em;
             top: -0.3em;
-            right: -0.5em;
             color: #fff;
-            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
-        /* Ajustes específicos para o botão de volume não quebrar a tela */
-        .video-js .vjs-volume-panel { transition: none; display: flex; align-items: center; }
-        .video-js .vjs-volume-bar { margin: 0 0.5em; height: 0.6em; border-radius: 4px; }
-        .video-js .vjs-volume-level { background-color: var(--accent); }
-        .video-js .vjs-volume-level:before { font-size: 1.5em; top: -0.35em; right: -0.4em; }
-        
-        /* Controle do botão de volume em telas pequenas (limita a largura para não vazar) */
-        @media (max-width: 768px) {
-            .video-js .vjs-volume-panel.vjs-volume-panel-horizontal.vjs-hover,
-            .video-js .vjs-volume-panel.vjs-volume-panel-horizontal:active,
-            .video-js .vjs-volume-panel.vjs-volume-panel-horizontal.vjs-slider-active {
-                width: 7em !important;
-            }
+        /* AJUSTE DO VOLUME PARA MOBILE
+           Usa o padrão vertical que ocupa menos espaço. Deixei mais gordinho para acertar o dedo.
+        */
+        .video-js .vjs-volume-panel {
+            width: 3.5em !important; /* Trava o tamanho do botão para não empurrar os outros */
+            display: flex;
+            align-items: center;
         }
-        @media (min-width: 769px) {
-            .video-js .vjs-volume-panel.vjs-volume-panel-horizontal.vjs-hover,
-            .video-js .vjs-volume-panel.vjs-volume-panel-horizontal:active,
-            .video-js .vjs-volume-panel.vjs-volume-panel-horizontal.vjs-slider-active {
-                width: 10em !important;
-            }
+        .vjs-slider-vertical .vjs-volume-level {
+            background-color: var(--accent);
+            width: 0.5em; /* Engrossa a barra vertical de volume */
+            margin: 0 auto;
+        }
+        .vjs-slider-vertical .vjs-volume-level:before {
+            left: -0.3em;
+            font-size: 1.2em;
         }
 
-        /* Espaçamento para os botões do plugin de pular 10s */
-        .vjs-seek-button { width: 3.5em !important; }
+        /* Ajuste do tamanho dos ícones gerais (Play, Pular 10s, Fullscreen) */
+        .video-js .vjs-button > .vjs-icon-placeholder:before {
+            font-size: 2.2em;
+            line-height: 1.6;
+        }
+        .vjs-seek-button { width: 3em !important; }
     </style>
 </head>
 <body data-theme="dark">
@@ -619,7 +629,6 @@
             }
         }
 
-        // Lógica aprimorada para adicionar lista e criar na hora
         async function addToListPrompt(id, title, type) {
             let promptText = "Escolha a lista (digite o número):\n";
             promptText += "0. ➕ CRIAR NOVA LISTA\n\n";
@@ -631,11 +640,10 @@
             }
             
             const choice = prompt(promptText);
-            if (choice === null || choice.trim() === "") return; // Usuário cancelou
+            if (choice === null || choice.trim() === "") return; 
             
             const num = parseInt(choice);
             
-            // Lógica para opção 0 (Criar Nova e Adicionar)
             if (num === 0) {
                 const newName = prompt("Qual o nome da nova lista?");
                 if (!newName || newName.trim() === "") return;
@@ -648,7 +656,6 @@
                 return;
             }
             
-            // Lógica para listas existentes
             const idx = num - 1;
             if (appData.lists[idx]) {
                 if (appData.lists[idx].items.some(i => i.id === id)) {
