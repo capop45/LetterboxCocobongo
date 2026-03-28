@@ -174,7 +174,7 @@
         /* 1. Joga a barra de progresso para FORA da linha de botões, flutuando acima deles */
         .video-js .vjs-progress-control {
             position: absolute !important;
-            top: -1.2em !important; /* Desloca pra cima da barra preta */
+            top: -1.8em !important; /* AFSTADO MAIS PARA CIMA (antes era -1.2em) */
             left: 0 !important;
             right: 0 !important;
             width: 100% !important;
@@ -619,13 +619,11 @@
 
             playerInstancia.src({ type: tipoVideo, src: fonteVideo });
 
-            // Remove legendas antigas
             const tracksAnteriores = playerInstancia.remoteTextTracks();
             while (tracksAnteriores.length > 0) {
                 playerInstancia.removeRemoteTextTrack(tracksAnteriores[0]);
             }
 
-            // Adiciona e FORÇA a exibição da nova legenda
             if (fonteSub) {
                 let novaLegenda = playerInstancia.addRemoteTextTrack({
                     kind: 'captions',
@@ -635,7 +633,6 @@
                     default: true
                 }, true);
                 
-                // O segredo para forçar o carregamento imediato da legenda no Video.js
                 novaLegenda.track.mode = 'showing';
             }
 
