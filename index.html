@@ -161,61 +161,72 @@
             border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        /* ----- CUSTOMIZAÇÕES DO VIDEO.JS (Limpo e Seguro para Mobile) ----- */
+        /* ----- CUSTOMIZAÇÕES DO VIDEO.JS (Força Bruta com Flexbox para Mobile) ----- */
         
-        /* Ajuste da barra principal para não esmagar os botões */
+        /* Trava a altura da barra inferior e usa flexbox para garantir que NADA fuja dela */
         .video-js.vjs-theme-city .vjs-control-bar {
-            background-color: rgba(0, 0, 0, 0.85);
-            height: 3.5em; /* Altura segura */
+            height: 4em !important;
+            background-color: rgba(0, 0, 0, 0.9) !important;
+            display: flex !important;
+            align-items: center !important;
+            bottom: 0 !important;
+            padding: 0 5px !important;
         }
 
-        /* BARRA DE PROGRESSO E SLIDER 
-           A propriedade touch-action: none previne que a tela role no celular, 
-           permitindo que a bolinha e a cor sigam o dedo instantaneamente.
-        */
+        /* Botões perfeitamente centralizados geometricamente */
+        .video-js .vjs-button {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            height: 100% !important;
+        }
+        
+        /* Remove a linha de altura problemática e trava o tamanho da fonte do ícone */
+        .video-js .vjs-button > .vjs-icon-placeholder:before {
+            position: relative !important;
+            font-size: 2.2em !important;
+            line-height: 1 !important; /* Reset fundamental */
+        }
+
+        /* Barra de Progresso segurando o toque sem rolar a tela */
         .video-js .vjs-progress-control {
-            touch-action: none; 
-            padding-top: 10px; /* Aumenta a área de toque sem engrossar a barra visual */
+            display: flex !important;
+            align-items: center !important;
+            touch-action: none !important; 
         }
         .video-js .vjs-progress-holder {
-            height: 0.6em; 
-            border-radius: 6px;
+            height: 0.6em !important; 
+            border-radius: 6px !important;
+            margin: 0 10px !important;
         }
         .video-js .vjs-play-progress {
-            background-color: var(--accent);
-            border-radius: 6px;
+            background-color: var(--accent) !important;
+            border-radius: 6px !important;
         }
-        /* Força a bolinha a ficar perfeitamente redonda e sempre visível */
+        /* Bolinha do slider do tempo presa no centro da barra de progresso */
         .video-js .vjs-play-progress:before {
             display: block !important;
-            font-size: 1.6em;
-            top: -0.3em;
-            color: #fff;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            font-size: 1.5em !important;
+            top: -0.45em !important; /* Puxa levemente para cima pra centralizar na barra que tem 0.6em */
+            right: -0.4em !important;
+            color: #fff !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5) !important;
         }
 
-        /* AJUSTE DO VOLUME PARA MOBILE
-           Usa o padrão vertical que ocupa menos espaço. Deixei mais gordinho para acertar o dedo.
-        */
+        /* Controle de Volume Vertical bem espesso */
         .video-js .vjs-volume-panel {
-            width: 3.5em !important; /* Trava o tamanho do botão para não empurrar os outros */
-            display: flex;
-            align-items: center;
+            width: 3.5em !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
         .vjs-slider-vertical .vjs-volume-level {
-            background-color: var(--accent);
-            width: 0.5em; /* Engrossa a barra vertical de volume */
-            margin: 0 auto;
+            background-color: var(--accent) !important;
+            width: 0.8em !important; 
+            margin: 0 auto !important;
         }
         .vjs-slider-vertical .vjs-volume-level:before {
-            left: -0.3em;
-            font-size: 1.2em;
-        }
-
-        /* Ajuste do tamanho dos ícones gerais (Play, Pular 10s, Fullscreen) */
-        .video-js .vjs-button > .vjs-icon-placeholder:before {
-            font-size: 2.2em;
-            line-height: 1.6;
+            left: -0.2em !important; /* Ajusta a bolinha do volume no eixo X */
         }
         .vjs-seek-button { width: 3em !important; }
     </style>
