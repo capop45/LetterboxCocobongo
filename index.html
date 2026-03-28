@@ -161,23 +161,53 @@
             border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        /* ----- CUSTOMIZAÇÕES DO VIDEO.JS PEDIDAS ----- */
+        /* ----- CUSTOMIZAÇÕES DO VIDEO.JS (Aprimorado para Mobile) ----- */
         
-        /* Aumenta a grossura e o tamanho da barra de volume, mantendo sempre visível */
-        .video-js .vjs-volume-panel { width: 12em !important; transition: none; }
-        .video-js .vjs-volume-control { opacity: 1 !important; width: 8em !important; visibility: visible !important; }
+        /* Deixa a barra inferior de controles mais alta e com margem interna */
+        .video-js .vjs-control-bar { height: 4.5em; background-color: rgba(0, 0, 0, 0.85); padding: 0 5px; }
+        
+        /* Aumenta os ícones gerais */
+        .video-js .vjs-button > .vjs-icon-placeholder:before { font-size: 2.4em; line-height: 1.8; }
+        
+        /* Aumenta a espessura da barra de progresso do vídeo (Slider) */
+        .video-js .vjs-progress-control { display: flex; align-items: center; height: 100%; }
+        .video-js .vjs-progress-holder { height: 0.8em; border-radius: 8px; margin: 0 15px; }
+        .video-js .vjs-play-progress { background-color: var(--accent); border-radius: 8px; }
+        
+        /* Força a bolinha (knob) a aparecer sempre e ser redonda, mesmo sem mouse hover */
+        .video-js .vjs-play-progress:before {
+            display: block !important;
+            font-size: 1.6em;
+            top: -0.3em;
+            right: -0.5em;
+            color: #fff;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        /* Ajustes específicos para o botão de volume não quebrar a tela */
+        .video-js .vjs-volume-panel { transition: none; display: flex; align-items: center; }
+        .video-js .vjs-volume-bar { margin: 0 0.5em; height: 0.6em; border-radius: 4px; }
         .video-js .vjs-volume-level { background-color: var(--accent); }
-        .video-js .vjs-volume-bar { margin: 1.5em 0.45em; height: 0.5em; border-radius: 4px; }
-        .video-js .vjs-volume-level::before { font-size: 1.5em; }
+        .video-js .vjs-volume-level:before { font-size: 1.5em; top: -0.35em; right: -0.4em; }
+        
+        /* Controle do botão de volume em telas pequenas (limita a largura para não vazar) */
+        @media (max-width: 768px) {
+            .video-js .vjs-volume-panel.vjs-volume-panel-horizontal.vjs-hover,
+            .video-js .vjs-volume-panel.vjs-volume-panel-horizontal:active,
+            .video-js .vjs-volume-panel.vjs-volume-panel-horizontal.vjs-slider-active {
+                width: 7em !important;
+            }
+        }
+        @media (min-width: 769px) {
+            .video-js .vjs-volume-panel.vjs-volume-panel-horizontal.vjs-hover,
+            .video-js .vjs-volume-panel.vjs-volume-panel-horizontal:active,
+            .video-js .vjs-volume-panel.vjs-volume-panel-horizontal.vjs-slider-active {
+                width: 10em !important;
+            }
+        }
 
-        /* Engrossa a barra de progresso (Slider) para facilitar clique e visão */
-        .video-js .vjs-progress-control { height: 1.5em; }
-        .video-js .vjs-progress-holder { height: 0.6em; border-radius: 4px; }
-        .video-js .vjs-play-progress { background-color: var(--accent); }
-        .video-js .vjs-play-progress::before { font-size: 1.5em; top: -0.4em; }
-
-        /* Estiliza os botões de avançar/voltar do plugin */
-        .vjs-seek-button { font-size: 1.2em; }
+        /* Espaçamento para os botões do plugin de pular 10s */
+        .vjs-seek-button { width: 3.5em !important; }
     </style>
 </head>
 <body data-theme="dark">
@@ -230,7 +260,7 @@
             <p class="menu-title">Minhas Coleções</p>
             <div id="sidebar-lists"></div>
             <div class="menu-item" style="color:var(--accent); font-weight: 800" onclick="createNewList()">
-                <i class="fas fa-plus-circle"></i> Criar Lista
+                <i class="fas fa-plus-circle"></i> Criar Lista Vazia
             </div>
         </div>
     </aside>
@@ -289,7 +319,8 @@
                     class="video-js vjs-big-play-centered vjs-theme-city vjs-show-big-play-button-on-pause"
                     controls
                     preload="metadata"
-                    crossorigin="anonymous">
+                    crossorigin="anonymous"
+                    playsinline>
                     <p class="vjs-no-js">
                         Para visualizar este vídeo, habilite o JavaScript.
                     </p>
@@ -323,11 +354,10 @@
         async function init() {
             showLoader(true);
             
-            // Inicializa o player com fluid e playbackRates
             playerInstancia = videojs('meu-player', { 
                 fluid: true, 
                 responsive: true,
-                playbackRates: [0.5, 1, 1.25, 1.5, 2], // Opções de velocidade de reprodução
+                playbackRates: [0.5, 1, 1.25, 1.5, 2],
                 controlBar: {
                     skipButtons: {
                         forward: 10,
@@ -336,7 +366,6 @@
                 }
             });
 
-            // Ativa o plugin de botões de 10 segundos adicionados
             playerInstancia.seekButtons({
                 forward: 10,
                 back: 10
@@ -432,7 +461,7 @@
                 
                 const playBtn = temLinkNaNuvem 
                     ? `<button class="action-btn play-btn" style="background:var(--accent); color:#fff;"><i class="fas fa-play"></i></button>`
-                    : `<button class="action-btn play-btn" style="background:#2a2a2a; color:#888;" title="Indisponível - Ir para testes" onclick="irParaPlayerTeste()"><i class="fas fa-video-slash"></i> Indisponível</button>`;
+                    : `<button class="action-btn play-btn" style="background:#2a2a2a; color:#888;" title="Indisponível - Ir para testes" onclick="irParaPlayerTeste()"><i class="fas fa-video-slash"></i></button>`;
 
                 return `
                 <div class="movie-card">
@@ -458,6 +487,7 @@
         function irParaPlayerTeste() {
             alert("Vídeo ainda não vinculado na nuvem. Redirecionando para o Player de Testes para simulação.");
             changeMode('player');
+            closeModal();
         }
 
         async function showDetails(id, type) {
@@ -468,14 +498,21 @@
                 let omdb = {};
                 if (imdbId) omdb = await (await fetch(`https://www.omdbapi.com/?apikey=${OMDB_KEY}&i=${imdbId}`)).json();
 
+                const safeTitle = (tmdb.title || tmdb.name).replace(/'/g, "\\'");
+
                 document.getElementById('modal-img').src = tmdb.poster_path ? `https://image.tmdb.org/t/p/w500${tmdb.poster_path}` : '';
                 document.getElementById('modal-body').innerHTML = `
                     <h2 style="font-size:2rem; margin-bottom:10px">${tmdb.title || tmdb.name}</h2>
                     <p style="color:var(--text-dim); margin-bottom:20px">${tmdb.original_title || tmdb.original_name} • ${tmdb.runtime || '--'} min</p>
                     
-                    <button onclick="closeModal(); irParaPlayerTeste()" style="background:var(--accent); color:#fff; border:none; padding:12px 24px; border-radius:8px; font-weight:800; cursor:pointer; margin-bottom:15px; width:100%; font-size:1rem;">
-                        <i class="fas fa-play"></i> Assistir Título (Teste)
-                    </button>
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <button onclick="irParaPlayerTeste()" style="flex:1; background:var(--accent); color:#fff; border:none; padding:12px 24px; border-radius:8px; font-weight:800; cursor:pointer; font-size:1rem; transition:0.2s" onmouseover="this.style.filter='brightness(1.2)'" onmouseout="this.style.filter='none'">
+                            <i class="fas fa-play"></i> Assistir Título (Teste)
+                        </button>
+                        <button onclick="addToListPrompt(${tmdb.id}, '${safeTitle}', '${type}')" style="flex:1; background:var(--bg-sidebar); color:var(--text-main); border:1px solid rgba(255,255,255,0.1); padding:12px 24px; border-radius:8px; font-weight:800; cursor:pointer; font-size:1rem; transition:0.2s" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='var(--bg-sidebar)'">
+                            <i class="fas fa-plus"></i> Salvar na Lista
+                        </button>
+                    </div>
 
                     <div class="badges">
                         <div class="badge" style="background:var(--imdb); color:#000"><i class="fab fa-imdb"></i> ${omdb.imdbRating || tmdb.vote_average.toFixed(1)}</div>
@@ -569,6 +606,7 @@
             appData.lists.push({ id: Date.now().toString(), name, items: [] });
             await syncJSONBin('PUT');
             renderListsSidebar();
+            alert("Lista criada com sucesso!");
         }
 
         async function deleteList(id, e) {
@@ -581,16 +619,47 @@
             }
         }
 
+        // Lógica aprimorada para adicionar lista e criar na hora
         async function addToListPrompt(id, title, type) {
-            if (!appData.lists.length) return alert("Crie uma lista na lateral primeiro!");
-            const choice = prompt("Escolha a lista (digite o número):\n" + appData.lists.map((l, i) => `${i+1}. ${l.name}`).join('\n'));
-            const idx = parseInt(choice) - 1;
+            let promptText = "Escolha a lista (digite o número):\n";
+            promptText += "0. ➕ CRIAR NOVA LISTA\n\n";
+            
+            if (appData.lists.length > 0) {
+                promptText += appData.lists.map((l, i) => `${i+1}. ${l.name}`).join('\n');
+            } else {
+                promptText += "(Você ainda não tem listas salvas)";
+            }
+            
+            const choice = prompt(promptText);
+            if (choice === null || choice.trim() === "") return; // Usuário cancelou
+            
+            const num = parseInt(choice);
+            
+            // Lógica para opção 0 (Criar Nova e Adicionar)
+            if (num === 0) {
+                const newName = prompt("Qual o nome da nova lista?");
+                if (!newName || newName.trim() === "") return;
+                
+                const newListId = Date.now().toString();
+                appData.lists.push({ id: newListId, name: newName, items: [{id, type}] });
+                await syncJSONBin('PUT');
+                renderListsSidebar();
+                alert(`Lista "${newName}" criada e filme salvo nela!`);
+                return;
+            }
+            
+            // Lógica para listas existentes
+            const idx = num - 1;
             if (appData.lists[idx]) {
-                if (appData.lists[idx].items.some(i => i.id === id)) return alert("Já está salvo!");
+                if (appData.lists[idx].items.some(i => i.id === id)) {
+                    return alert("Este título já está salvo nesta lista!");
+                }
                 appData.lists[idx].items.push({ id, type });
                 await syncJSONBin('PUT');
                 renderListsSidebar();
-                alert("Salvo com sucesso!");
+                alert(`Salvo com sucesso na lista "${appData.lists[idx].name}"!`);
+            } else {
+                alert("Opção inválida.");
             }
         }
 
