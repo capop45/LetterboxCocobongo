@@ -7,6 +7,10 @@
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/4221/4221419.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+    <link href="https://unpkg.com/@videojs/themes@1/dist/city/index.css" rel="stylesheet">
+
     <style>
         :root {
             --bg-body: #14181c; --bg-card: #1b2228; --bg-sidebar: #181d23;
@@ -94,9 +98,11 @@
         .movie-card-info p { font-size: 0.75rem; color: var(--text-dim); }
         
         .card-actions { display: flex; border-top: 1px solid rgba(0,0,0,0.05); }
-        .action-btn { flex: 1; padding: 12px; border: none; cursor: pointer; font-size: 0.8rem; font-weight: 700; background: var(--bg-sidebar); color: var(--text-main); }
+        .action-btn { flex: 1; padding: 12px; border: none; cursor: pointer; font-size: 0.8rem; font-weight: 700; background: var(--bg-sidebar); color: var(--text-main); transition: 0.2s; }
         .add-btn:hover { background: var(--accent); color: #fff; }
         .remove-btn:hover { background: var(--danger); color: #fff; }
+        .play-btn { border-right: 1px solid rgba(0,0,0,0.1); }
+        .play-btn:hover { filter: brightness(1.2); }
 
         /* Modal */
         #modal-overlay { 
@@ -124,6 +130,34 @@
         .pagination { display: flex; justify-content: center; align-items: center; gap: 15px; margin: 30px 0; }
         .page-btn { padding: 10px 18px; background: var(--bg-card); border: 2px solid var(--accent); color: var(--accent); border-radius: 12px; cursor: pointer; font-weight: 800; }
         .page-btn:disabled { opacity: 0.2; cursor: not-allowed; }
+
+        /* Estilos do Player de Testes */
+        .test-controls {
+            background-color: var(--bg-card);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: grid;
+            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        .input-group { display: flex; flex-direction: column; }
+        .input-group label { margin-bottom: 5px; font-size: 13px; font-weight: 600; color: var(--text-dim); }
+        .input-group input { 
+            padding: 10px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.2); 
+            background-color: var(--bg-sidebar); color: var(--text-main); font-size: 14px;
+        }
+        .btn-load {
+            grid-column: 1 / -1; background-color: var(--accent); color: #fff;
+            border: none; padding: 15px; font-size: 16px; border-radius: 8px;
+            cursor: pointer; font-weight: 800; transition: var(--transition);
+        }
+        .btn-load:hover { background-color: #008f35; }
+        .video-container-wrapper {
+            width: 100%; max-width: 1000px; margin: 0 auto; background-color: #000;
+            border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
     </style>
 </head>
 <body data-theme="dark">
@@ -139,6 +173,7 @@
             <p class="menu-title">Navegação</p>
             <div class="menu-item active" id="nav-trending" onclick="changeMode('trending')"><i class="fas fa-fire"></i> Bombando</div>
             <div class="menu-item" id="nav-top" onclick="changeMode('top_rated')"><i class="fas fa-trophy"></i> Melhor Avaliados</div>
+            <div class="menu-item" id="nav-player" onclick="changeMode('player')"><i class="fas fa-laptop-code"></i> Player de Testes</div>
         </div>
 
         <div class="menu-section">
@@ -189,19 +224,59 @@
                 <i class="fas fa-search"></i>
                 <input type="text" id="global-search" placeholder="Título, série, curta..." onkeyup="handleSearch(event)">
             </div>
-            <div class="theme-toggle" onclick="toggleTheme()">
-                <i class="fas fa-adjust"></i>
+            <div class="theme-toggle" onclick="toggleTheme()" style="cursor: pointer; padding: 10px;">
+                <i class="fas fa-adjust" style="font-size: 1.2rem;"></i>
             </div>
         </header>
 
-        <div class="loader" id="main-loader"></div>
-        <div class="results-grid" id="main-grid"></div>
+        <div id="view-catalog">
+            <div class="loader" id="main-loader"></div>
+            <div class="results-grid" id="main-grid"></div>
 
-        <div class="pagination" id="pagination-ctrl">
-            <button class="page-btn" id="btn-prev" onclick="changePage(-1)"><i class="fas fa-chevron-left"></i></button>
-            <span id="page-indicator" style="font-weight: 800">Página 1</span>
-            <button class="page-btn" id="btn-next" onclick="changePage(1)"><i class="fas fa-chevron-right"></i></button>
+            <div class="pagination" id="pagination-ctrl">
+                <button class="page-btn" id="btn-prev" onclick="changePage(-1)"><i class="fas fa-chevron-left"></i></button>
+                <span id="page-indicator" style="font-weight: 800">Página 1</span>
+                <button class="page-btn" id="btn-next" onclick="changePage(1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
         </div>
+
+        <div id="view-player" style="display: none; padding-bottom: 40px;">
+            <h2 style="margin-bottom: 20px; font-weight: 800;">Simulador de Nuvem (Upload & Streaming)</h2>
+            
+            <div class="test-controls">
+                <div class="input-group">
+                    <label>Link do Vídeo MP4 (Ex: AWS, Cloudflare)</label>
+                    <input type="text" id="url-video" placeholder="https://nuvem.com/filme.mp4">
+                </div>
+                <div class="input-group">
+                    <label>Link da Legenda VTT</label>
+                    <input type="text" id="url-sub" placeholder="https://nuvem.com/legenda.vtt">
+                </div>
+                <div class="input-group">
+                    <label>Teste Rápido: Arquivo Local (Vídeo)</label>
+                    <input type="file" id="file-video" accept="video/*">
+                </div>
+                <div class="input-group">
+                    <label>Teste Rápido: Arquivo Local (Legenda .vtt)</label>
+                    <input type="file" id="file-sub" accept=".vtt">
+                </div>
+                <button class="btn-load" onclick="carregarPlayerTeste()"><i class="fas fa-play"></i> Iniciar Reprodução</button>
+            </div>
+
+            <div class="video-container-wrapper">
+                <video
+                    id="meu-player"
+                    class="video-js vjs-big-play-centered vjs-theme-city"
+                    controls
+                    preload="metadata"
+                    crossorigin="anonymous">
+                    <p class="vjs-no-js">
+                        Para visualizar este vídeo, habilite o JavaScript.
+                    </p>
+                </video>
+            </div>
+        </div>
+
     </main>
 
     <div id="modal-overlay" onclick="closeModal()">
@@ -212,17 +287,26 @@
         </div>
     </div>
 
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+
     <script>
         const TMDB_KEY = '61bfe826a425f60001a4dc8365ea05dc';
         const OMDB_KEY = 'e4649501';
         const BIN_ID = '6999fe9843b1c97be991ae3f';
-        const MASTER_KEY = '$2a$10$T3C70qhYrKZMczxOir2xUeypvmxIZ89FRuioGyxBSh/gZorc4iBAy';
+        
+        // Chave da API atualizada conforme solicitado
+        const MASTER_KEY = '$2a$10$eoyd0OtUFB/Jah3O/UAm0OLok1mrWtq7JtCAe0D9IdT268eYEzxTu';
 
         let appData = { a: [{"1": "b"}], lists: [] };
         let currentPage = 1, currentMode = 'trending', searchQuery = '', currentListId = null, timer;
+        let playerInstancia;
 
         async function init() {
             showLoader(true);
+            
+            // Inicializa o player de testes em background garantindo responsividade
+            playerInstancia = videojs('meu-player', { fluid: true, responsive: true });
+
             await syncJSONBin('GET');
             await loadContent();
             renderListsSidebar();
@@ -257,12 +341,10 @@
             }
 
             if (searchQuery.length > 2) {
-                // Modo Busca (Search/Multi)
                 url = `https://api.themoviedb.org/3/search/multi?api_key=${TMDB_KEY}&language=pt-BR&query=${encodeURIComponent(searchQuery)}&page=${currentPage}`;
             } else if (currentMode === 'trending') {
                 url = `https://api.themoviedb.org/3/trending/all/week?api_key=${TMDB_KEY}&language=pt-BR&page=${currentPage}`;
             } else {
-                // Modo Discovery (Discover/Movie - com filtros técnicos)
                 url = `https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&language=pt-BR&sort_by=${sort}&page=${currentPage}&vote_count.gte=10&release_date.lte=2026-12-31`;
                 if (genre) url += `&with_genres=${genre}`;
                 if (period) {
@@ -278,7 +360,6 @@
                 const data = await res.json();
                 let results = data.results || [];
 
-                // Filtragem client-side para combinar busca com os selects da lateral
                 if (searchQuery.length > 2 && (genre || period)) {
                     results = results.filter(m => {
                         const y = (m.release_date || m.first_air_date || '').split('-')[0];
@@ -311,6 +392,14 @@
                 const isTv = m.media_type === 'tv' || (!m.media_type && m.first_air_date);
                 const title = m.title || m.name || 'Sem título';
                 const date = (m.release_date || m.first_air_date || '').split('-')[0];
+                
+                // Variável simulando se o filme já tem link cadastrado no seu JSON futuro
+                const temLinkNaNuvem = false; 
+                
+                const playBtn = temLinkNaNuvem 
+                    ? `<button class="action-btn play-btn" style="background:var(--accent); color:#fff;"><i class="fas fa-play"></i></button>`
+                    : `<button class="action-btn play-btn" style="background:#2a2a2a; color:#888;" title="Indisponível - Ir para testes" onclick="irParaPlayerTeste()"><i class="fas fa-video-slash"></i> Indisponível</button>`;
+
                 return `
                 <div class="movie-card">
                     <div class="poster-wrapper" onclick="showDetails(${m.id}, '${isTv ? 'tv' : 'movie'}')">
@@ -322,13 +411,19 @@
                         <p>${date} • <i>${m.original_title || m.original_name || ''}</i></p>
                     </div>
                     <div class="card-actions">
+                        ${playBtn}
                         ${currentListId ? 
-                            `<button class="action-btn remove-btn" onclick="removeFromList(${m.id})"><i class="fas fa-trash-alt"></i> Remover</button>` : 
-                            `<button class="action-btn add-btn" onclick="addToListPrompt(${m.id}, '${title.replace(/'/g, "\\'")}', '${isTv ? 'tv' : 'movie'}')"><i class="fas fa-plus"></i> Salvar</button>`
+                            `<button class="action-btn remove-btn" onclick="removeFromList(${m.id})"><i class="fas fa-trash-alt"></i></button>` : 
+                            `<button class="action-btn add-btn" onclick="addToListPrompt(${m.id}, '${title.replace(/'/g, "\\'")}', '${isTv ? 'tv' : 'movie'}')"><i class="fas fa-plus"></i></button>`
                         }
                     </div>
                 </div>`;
             }).join('');
+        }
+
+        function irParaPlayerTeste() {
+            alert("Vídeo ainda não vinculado na nuvem. Redirecionando para o Player de Testes para simulação.");
+            changeMode('player');
         }
 
         async function showDetails(id, type) {
@@ -343,6 +438,11 @@
                 document.getElementById('modal-body').innerHTML = `
                     <h2 style="font-size:2rem; margin-bottom:10px">${tmdb.title || tmdb.name}</h2>
                     <p style="color:var(--text-dim); margin-bottom:20px">${tmdb.original_title || tmdb.original_name} • ${tmdb.runtime || '--'} min</p>
+                    
+                    <button onclick="closeModal(); irParaPlayerTeste()" style="background:var(--accent); color:#fff; border:none; padding:12px 24px; border-radius:8px; font-weight:800; cursor:pointer; margin-bottom:15px; width:100%; font-size:1rem;">
+                        <i class="fas fa-play"></i> Assistir Título (Teste)
+                    </button>
+
                     <div class="badges">
                         <div class="badge" style="background:var(--imdb); color:#000"><i class="fab fa-imdb"></i> ${omdb.imdbRating || tmdb.vote_average.toFixed(1)}</div>
                         <div class="badge" style="background:var(--rotten); color:#fff"><i class="fas fa-apple-alt"></i> ${omdb.Ratings?.find(r => r.Source === "Rotten Tomatoes")?.Value || "N/A"}</div>
@@ -357,6 +457,82 @@
             showLoader(false);
         }
 
+        // Função que gerencia o fluxo de navegação entre Views
+        function changeMode(mode) {
+            currentMode = mode; currentListId = null; searchQuery = '';
+            document.getElementById('global-search').value = '';
+            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+            
+            if (mode === 'player') {
+                document.getElementById('nav-player').classList.add('active');
+                document.getElementById('view-catalog').style.display = 'none';
+                document.getElementById('view-player').style.display = 'block';
+                if (window.innerWidth <= 1024) toggleSidebar();
+            } else {
+                document.getElementById('view-catalog').style.display = 'block';
+                document.getElementById('view-player').style.display = 'none';
+                document.getElementById(mode === 'trending' ? 'nav-trending' : 'nav-top').classList.add('active');
+                document.getElementById('pagination-ctrl').style.display = 'flex';
+                currentPage = 1; 
+                if (window.innerWidth <= 1024) toggleSidebar(); 
+                loadContent();
+            }
+        }
+
+        // Lógica do Player de Testes
+        function carregarPlayerTeste() {
+            const urlVideo = document.getElementById('url-video').value.trim();
+            const urlSub = document.getElementById('url-sub').value.trim();
+            const fileVideo = document.getElementById('file-video').files[0];
+            const fileSub = document.getElementById('file-sub').files[0];
+
+            let fonteVideo = "";
+            let tipoVideo = "video/mp4";
+            let fonteSub = "";
+
+            if (fileVideo) {
+                fonteVideo = URL.createObjectURL(fileVideo);
+                tipoVideo = fileVideo.type || "video/mp4";
+            } else if (urlVideo) {
+                fonteVideo = urlVideo;
+            }
+
+            if (fileSub) {
+                fonteSub = URL.createObjectURL(fileSub);
+            } else if (urlSub) {
+                fonteSub = urlSub;
+            }
+
+            if (!fonteVideo) {
+                alert("Por favor, insira um link da nuvem ou selecione um arquivo de vídeo.");
+                return;
+            }
+
+            playerInstancia.src({ type: tipoVideo, src: fonteVideo });
+
+            const tracksAnteriores = playerInstancia.remoteTextTracks();
+            while (tracksAnteriores.length > 0) {
+                playerInstancia.removeRemoteTextTrack(tracksAnteriores[0]);
+            }
+
+            if (fonteSub) {
+                playerInstancia.addRemoteTextTrack({
+                    kind: 'captions',
+                    src: fonteSub,
+                    srclang: 'pt-br',
+                    label: 'Português',
+                    default: true
+                }, true);
+            }
+
+            playerInstancia.load();
+            playerInstancia.play().catch(e => console.log("Autoplay bloqueado pelo navegador."));
+            
+            // Rola a tela suavemente para o player
+            document.querySelector('.video-container-wrapper').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Demais funções inalteradas do seu código original
         async function createNewList() {
             const name = prompt("Nome da Coleção:");
             if (!name) return;
@@ -408,6 +584,8 @@
         async function viewCollection(id) {
             currentListId = id; currentMode = 'list';
             if (window.innerWidth <= 1024) toggleSidebar();
+            document.getElementById('view-catalog').style.display = 'block';
+            document.getElementById('view-player').style.display = 'none';
             document.getElementById('pagination-ctrl').style.display = 'none';
             loadContent();
         }
@@ -424,7 +602,12 @@
             clearTimeout(timer);
             timer = setTimeout(() => {
                 searchQuery = e.target.value;
-                if (searchQuery.length > 2) { currentMode = 'search'; currentListId = null; }
+                if (searchQuery.length > 2) { 
+                    currentMode = 'search'; 
+                    currentListId = null;
+                    document.getElementById('view-catalog').style.display = 'block';
+                    document.getElementById('view-player').style.display = 'none';
+                }
                 else if (searchQuery.length === 0) currentMode = 'trending';
                 currentPage = 1; loadContent();
             }, 600);
@@ -432,16 +615,9 @@
 
         function resetAndLoad() {
             currentPage = 1; currentMode = searchQuery.length > 2 ? 'search' : 'discover'; currentListId = null;
+            document.getElementById('view-catalog').style.display = 'block';
+            document.getElementById('view-player').style.display = 'none';
             document.getElementById('pagination-ctrl').style.display = 'flex'; loadContent();
-        }
-
-        function changeMode(mode) {
-            currentMode = mode; currentListId = null; searchQuery = '';
-            document.getElementById('global-search').value = '';
-            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
-            document.getElementById(mode === 'trending' ? 'nav-trending' : 'nav-top').classList.add('active');
-            document.getElementById('pagination-ctrl').style.display = 'flex';
-            currentPage = 1; if (window.innerWidth <= 1024) toggleSidebar(); loadContent();
         }
 
         function changePage(d) { currentPage += d; loadContent(); window.scrollTo(0,0); }
@@ -463,6 +639,7 @@
         function showLoader(s) { document.getElementById('main-loader').style.display = s ? 'block' : 'none'; }
         function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
 
+        // Inicia o app
         init();
     </script>
 </body>
